@@ -19,6 +19,7 @@ async def get_updated_events(calendar, user):
     params = {
         "orderBy": "updated",
         "singleEvents": "True",
+        "showDeleted": "False",
         "updatedMin" : calendar.last_check
     }
     

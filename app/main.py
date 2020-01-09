@@ -30,18 +30,20 @@ async def receive_pushed_event(request):
         updated_events = await push_notification.get_updated_events(calendar, user)
         
         # THIS NEEDS TO BE AN EVENT LOOP
-        for updated_event in updated_events:            
+        for updated_event in updated_events:
+            print(updated_event) 
+            print(updated_event["id"])           
             if "attendees" in updated_event:
                 if await event.is_needs_action(updated_event):
                     busy = await event.is_busy_during_event(updated_event, calendar, user)
                     logger.log_text("checked: " + str(channel_id) + ": " + str(busy))
                     if busy: 
-                        reject = await event.decline_meeting(updated_event, user)
-                        logger.log_text(updated_event["id"] + " was rejected")
+                        reject = await event.decline_meeting(updated_event, calendar, user)
+                        logger.log_text(str(updated_event["id"]) + " was rejected")
                 else:
-                    logger.log_text(updated_event["id"] + " you're not tentative")
+                    logger.log_text(str(updated_event["id"]) + " you're not tentative")
             else:
-                logger.log_text(updated_event["id"] + " is not meeting")
+                logger.log_text(str(updated_event["id"]) + " is not a meeting")
 
         # Update calendar record wih most recent event that was checked.
         for updated_event in reversed(updated_events) :
@@ -61,6 +63,7 @@ async def receive_pushed_event(request):
 async def watch_calendar(request):
 
     request = await request.json()
+
     url = "https://www.googleapis.com/calendar/v3/calendars/" + request['calendar_id'] + "/events/watch"
     json = {
         "id": str(uuid.uuid1()),
@@ -71,7 +74,7 @@ async def watch_calendar(request):
         }
     }
     headers = {
-        'Authorization' : "Bearer " + await token.get_fresh_token(),
+        'Authorization' : "Bearer " + await token.get_token(),
         'Content-Type': "application/json"
     }
 
@@ -104,6 +107,11 @@ async def get_auth_link():
     url = ""
     return url
 
+async def swap_auth_code(request):
+    request = await request.json()
+    auth_code = request["auth_code"]
+    get_token = trade_authcode_for_token(auth_code)
+
 async def index(request):
     message = "I defend calendars"
     return aiohttp.web.Response(text=message)
@@ -112,6 +120,7 @@ app = aiohttp.web.Application()
 app.add_routes([aiohttp.web.get('/', index)])
 app.add_routes([aiohttp.web.post('/push_event', receive_pushed_event)])
 app.add_routes([aiohttp.web.get('/get_auth_link', get_auth_link)])
+app.add_routes([aiohttp.web.post('/swap_auth_code', swap_auth_code)])
 app.add_routes([aiohttp.web.post('/watch_calendar', watch_calendar)])
 
 aiohttp.web.run_app(app)
