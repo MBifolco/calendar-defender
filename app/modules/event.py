@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 import base64
 import os
-import gapi_token
+import modules.token as token
 
 logging_client = logging.Client()
 log_name = 'calendar-defender-debug'
@@ -56,7 +56,7 @@ async def is_busy_during_event(event, calendar, user):
         "timeMax": event["end"]["dateTime"] 
     }
     headers = {
-        'Authorization' : "Bearer " + await gapi_token.get_token(user),
+        'Authorization' : "Bearer " + await token.get_token(user),
         "Content-Type" : "application/json"
     }
 
@@ -79,7 +79,7 @@ async def is_busy_during_event(event, calendar, user):
 async def decline_meeting(event, user):
     calendar_id = "mdb388@gmail.com"
     url = "https://www.googleapis.com/calendar/v3/calendars/" + calendar_id+ "/events/" + event["id"]
-    headers = {'Authorization' : "Bearer " + await gapi_token.get_token(user)} 
+    headers = {'Authorization' : "Bearer " + await token.get_token(user)} 
     attendee = await get_self_from_attendees(event)
     attendee["responseStatus"] = "declined"
     attendee["comment"] = "Declined automatically by Calendar Defense - I'm already booked"

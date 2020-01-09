@@ -1,13 +1,14 @@
 from google.cloud import logging
-from model import *
+from models.model import *
 import asyncio
 import aiohttp
-import calendar
-import event
+import modules.calendar as calendar
+import modules.event as event
+import modules.push_notification as push_notification
+import modules.token as token
 import os
-import push_notification
 import uuid
-import gapi_token
+
 
 logging_client = logging.Client()
 log_name = 'calendar-defender-debug'
@@ -70,7 +71,7 @@ async def watch_calendar(request):
         }
     }
     headers = {
-        'Authorization' : "Bearer " + await gapi_token.get_fresh_token(),
+        'Authorization' : "Bearer " + await token.get_fresh_token(),
         'Content-Type': "application/json"
     }
 

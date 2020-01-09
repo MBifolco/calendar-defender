@@ -1,7 +1,7 @@
 from google.cloud import logging
 import asyncio
 import aiohttp
-import token
+import modules.token as token
 
 async def get_calendars():
     calendar_id = "mdb388@gmail.com"
