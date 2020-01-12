@@ -17,6 +17,7 @@ class BaseModel(Model):
 
 class User(BaseModel):
     id = AutoField()
+    public_id = CharField()
     email = CharField()
     created = DateTimeField()
     auth_code = CharField()

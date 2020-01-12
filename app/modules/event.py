@@ -12,7 +12,6 @@ logger = logging_client.logger(log_name)
 async def get_self_from_attendees(event):
     for attendee in event["attendees"]:
         if "self" in attendee:
-            print(attendee)
             return attendee
 
 
@@ -82,7 +81,7 @@ async def decline_meeting(event, calendar,user):
     headers = {'Authorization' : "Bearer " + await token.get_token(user)} 
     attendee = await get_self_from_attendees(event)
     attendee["responseStatus"] = "declined"
-    attendee["comment"] = "Declined automatically by Calendar Defense - I'm already booked"
+    attendee["comment"] = "Declined automatically by Calendar Defense."
     params = {
         "sendUpdates" : "all"
     }
@@ -91,10 +90,6 @@ async def decline_meeting(event, calendar,user):
             attendee
         ]
     }
-    print(url)
-    print(headers)
-    print(params)
-    print(json)
     async with aiohttp.ClientSession() as session:
         async with session.patch(url, headers=headers, params=params, json=json) as resp:
             if resp.status == 200:

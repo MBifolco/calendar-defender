@@ -22,14 +22,23 @@ async def get_updated_events(calendar, user):
         "showDeleted": "False",
         "updatedMin" : calendar.last_check
     }
-    
+
+    pages = True
+    events = []
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers, params=params) as resp:
-                if resp.status == 200:
-                    response =  await resp.json()
-                    return response["items"]
-                else:
-                    logger.log_text(await resp.text())
+        while pages:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, headers=headers, params=params) as resp:
+                    if resp.status == 200:
+                        response =  await resp.json()
+                        events.extend(response["items"])
+                        try:
+                            params["pageToken"] = response["nextPageToken"]
+                        except:
+                            pages = False
+                    else:
+                        logger.log_text(await resp.text())
+        return events
     except Exception as e:
         logger.log_text(str(e))
+    
