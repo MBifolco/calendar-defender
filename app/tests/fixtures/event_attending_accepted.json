@@ -1,0 +1,57 @@
+{
+    "kind": "calendar#event",
+    "etag": "\"3875293570234\"",
+    "id": "2395720395702395784",
+    "status": "confirmed",
+    "htmlLink": "https://www.google.com/calendar/event?eid=94n5g2f475j0239579235j7023957230",
+    "created": "2019-04-11T15:10:35.000Z",
+    "updated": "2020-01-14T06:11:05.592Z",
+    "summary": "Test Event",
+    "description": "some description",
+    "location": "some place",
+    "creator": {
+        "email": "some_creator@tests.com"
+    },
+    "organizer": {
+        "email": "some_organizer@tests.com"
+    },
+    "start": {
+        "dateTime": "2023-04-25T12:30:00-04:00"
+    },
+    "end": {
+        "dateTime": "2023-04-25T13:00:00-04:00"
+    },
+    "recurringEventId": "3495j8239fj20934dk2345",
+    "originalStartTime": {
+        "dateTime": "2023-04-25T12:30:00-04:00"
+    },
+    "iCalUID": "fj4870k2d93723j957034k@google.com",
+    "sequence": 0,
+    "attendees": [
+        {
+            "email": "michael.bifolco@ordergroove.com",
+            "displayName": "Michael Bifolco",
+            "self": true,
+            "responseStatus": "accepted"
+        },
+        {
+            "email": "michal.shtofman@ordergroove.com",
+            "responseStatus": "needsAction"
+        },
+        {
+            "email": "ralph.robertson@ordergroove.com",
+            "responseStatus": "accepted"
+        },
+        {
+            "email": "ordergroove.com_2d3836313639353337373632@resource.calendar.google.com",
+            "displayName": "Vineyard (12+) (aka Flatiron)",
+            "resource": true,
+            "responseStatus": "accepted"
+        }
+    ],
+    "extendedProperties": {
+    },
+    "reminders": {
+        "useDefault": true
+    }
+}

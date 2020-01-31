@@ -1,63 +1,45 @@
-from google.cloud import logging
+from aiohttp import web
 from models.model import *
 import asyncio
 import aiohttp
 import json
+import google.cloud.logging
+import logging
 import modules.calendar as calendar
-import modules.event as event
-import modules.push_notification as push_notification
+from modules.event import Event
+from modules.push_notification import PushNotification
 import modules.token as token
 import os
 import urllib.parse
 import uuid
 
-
-
-logging_client = logging.Client()
-log_name = 'calendar-defender-debug'
-logger = logging_client.logger(log_name)
-logger.log_text("app started")
+client = google.cloud.logging.Client()
+client.setup_logging()
+logging.info("Now Defending Calendars")
 
 async def receive_pushed_event(request):
     channel_id = request.headers["X-Goog-Channel-ID"]
-    resource_id = request.headers["X-Goog-Resource-ID"]
-    logger.log_text("push event received: " + channel_id + " " + resource_id)
+    logging.info("push event received: " + channel_id)
 
     try:
+        # get which calendar we're watching this is from db by channel_id
+        watched_calendar = WatchedCalendar.get(WatchedCalendar.channel_id == channel_id)
         
-        # get record from db by channel_id
-        calendar = WatchedCalendar.get(WatchedCalendar.channel_id == channel_id)
-        # find user associated with calendar
-        user = User.get(User.id==calendar.user_id)
+        # get user associated with calendar
+        user = User.get(User.id==watched_calendar.user_id)
+        
         # get all the changed events since the last time we got a notification
-        updated_events = await push_notification.get_updated_events(calendar, user)
+        push_notification = PushNotification(watched_calendar, user)
+        updated_events = await push_notification.get_updated_events()
+        #print (updated_events)
         
-        # THIS NEEDS TO BE AN EVENT LOOP
-        for updated_event in updated_events:       
-            if "attendees" in updated_event:
-                if await event.is_needs_action(updated_event):
-                    busy = await event.is_busy_during_event(updated_event, calendar, user)
-                    logger.log_text("checked: " + str(channel_id) + ": " + str(busy))
-                    if busy: 
-                        reject = await event.decline_meeting(updated_event, calendar, user)
-                        logger.log_text(str(updated_event["id"]) + " was rejected")
-                else:
-                    logger.log_text(str(updated_event["id"]) + " you're not tentative")
-            else:
-                logger.log_text(str(updated_event["id"]) + " is not a meeting")
-
-        # Update calendar record wih most recent event that was checked.
-        for updated_event in reversed(updated_events) :
-            if "updated" in updated_event:
-                last_check = updated_event["updated"]
-                calendar.last_check = last_check
-                calendar.save()
-                break
+        # for each event decline it if already busy
+        asyncio.gather(*[push_notification.decline_if_busy(updated_event) for updated_event in updated_events],)
 
         return aiohttp.web.Response(text="Thanks for letting us know.")
 
     except Exception as e:
-        logger.log_text(str(e))
+        logging.error(str(e), exc_info=True)
         return aiohttp.web.HTTPBadRequest()
 
 
@@ -106,9 +88,9 @@ async def watch_calendar(request):
                         #this should just return a 200
                         return web.Response(text=str(response))
                     else:
-                       logger.log_text(await resp.text())
+                       logging.info(await resp.text())
         except Exception as e:
-            logger.log_text(str(e))
+            logging.info(str(e))
 
 async def get_auth_link(request):
     endpoint = "https://accounts.google.com/o/oauth2/v2/auth?"
