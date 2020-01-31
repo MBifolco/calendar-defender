@@ -12,20 +12,15 @@ class Event(object):
         self.event = event
 
     async def get_self_from_attendees(self):
-        #print("get_self_from_attendees")
-        #print(self.event["attendees"])
         for attendee in self.event["attendees"]:
             if "self" in attendee:
                 return attendee
 
 
     async def get_self_response_status(self):
-        #print("get_self_response_status")
-        #print(self.event)
         if "attendees" in self.event:
             attendee = await self.get_self_from_attendees()
             if attendee["self"] == True:
-                print(attendee)
                 return attendee
 
     async def is_attending(self):
@@ -39,7 +34,6 @@ class Event(object):
 
     async def is_needs_action(self):
         attendee = await self.get_self_response_status()
-        print (attendee)
         try:
             if attendee["responseStatus"] == "needsAction":
                 return True
@@ -73,6 +67,7 @@ class Event(object):
         await async_http_request.add_param("calendarId", calendar.calendar_id)
         await async_http_request.add_param("timeMin", self.event["start"]["dateTime"])
         await async_http_request.add_param("timeMax", self.event["end"]["dateTime"] )
+        
         #await async_http_request.add_header("Content-Type", "")
         response = await async_http_request.make_request("get")
         #print(response)
@@ -85,6 +80,7 @@ class Event(object):
             return False
         else:
             return False
+
         
 
     async def decline_meeting(self, calendar, user):

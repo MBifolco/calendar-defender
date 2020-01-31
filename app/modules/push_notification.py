@@ -32,12 +32,10 @@ class PushNotification(object):
                 except:
                     pass
                 response = await async_http_request.make_request("get")
-                #print(response)
                 if response:
                     self.updated_events.extend(response["items"])
                     try:
                         nextPageToken = response["nextPageToken"]
-                        print (nextPageToken)
                     except:
                         pages = False
                 else:
@@ -57,15 +55,15 @@ class PushNotification(object):
                     last_check = updated_event["updated"]
                     #print("last update " + str(last_check))
                     self.watched_calendar.last_check = last_check
-                    #self.watched_calendar.save()
+                    self.watched_calendar.save()
                     break
         except Exception as e:
             logging.error(str(e), exc_info=True)
 
         
     async def decline_if_busy(self, updated_event):
-        event = Event(updated_event)   
-        
+        event = Event(updated_event)          
+
         if await event.is_needs_action():
             busy = await event.is_busy_during_event(self.watched_calendar, self.user)
             logging.info("checked: " + str(updated_event["id"]) + ": " + str(busy))
@@ -73,7 +71,7 @@ class PushNotification(object):
             if busy: 
                 reject = await event.decline_meeting(self.watched_calendar, self.user)
                 logging.info(str(updated_event["id"]) + " was rejected")
-            #else:
-                #logging.info(str(updated_event["id"]) + " you're free")
-        #else:
-            #logging.info(str(updated_event["id"]) + " you've already responded")
+            else:
+                logging.info(str(updated_event["id"]) + " you're free")
+        else:
+            logging.info(str(updated_event["id"]) + " you've already responded")
