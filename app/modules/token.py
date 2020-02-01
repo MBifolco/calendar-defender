@@ -6,36 +6,7 @@ import datetime
 import jwt
 import google.cloud.logging
 import logging
-import os
-
-async def get_token(user):
-    #access_token_expiration = datetime.strptime(user.access_token_expiration, "%a %b %d %H:%M:%S %Y")
-    #if user.access_token_expiration < datetime.datetime.now():
-    #logging.info("refresh token" + str(user.access_token_expiration))
-    return await get_fresh_token(user)
-    #else:
-     #   return user.access_token
-
-async def get_fresh_token(user):
-    url = "https://www.googleapis.com/oauth2/v4/token"
-   
-    async_http_request = AsyncHttpRequest(url, user)
-    await async_http_request.add_param("client_id",os.environ.get('CLIENT_ID'))
-    await async_http_request.add_param("client_secret",os.environ.get('CLIENT_SECRET'))
-    await async_http_request.add_param("refresh_token",user.refresh_token)
-    await async_http_request.add_param("grant_type","refresh_token")
-    await async_http_request.add_header("Content-Type","application/x-www-form-urlencoded")
-    response = await async_http_request.make_request("post", False)
-
-    if response:
-        #remove 20 seconds to be sure 
-        add_time_to_expiration = response["expires_in"] - 20
-        access_token_expiration = datetime.datetime.now() + datetime.timedelta(seconds=add_time_to_expiration) 
-        user.access_token_expiration = access_token_expiration
-        user.access_token = response["access_token"] 
-        user.save()
-        return response["access_token"]
-    
+import os   
 
 async def trade_authcode_for_token(authcode):
     url = "https://www.googleapis.com/oauth2/v4/token"

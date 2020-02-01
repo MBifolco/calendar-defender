@@ -1,4 +1,4 @@
-from modules.async_http_request import AsyncHttpRequest
+from modules.google_calendar_async_http_request import GoogleCalendarAsyncHttpRequest
 import asyncio
 import aiohttp
 import base64
@@ -63,13 +63,13 @@ class Event(object):
 
     async def is_busy_during_event(self, calendar, user):
         url = "https://www.googleapis.com/calendar/v3/calendars/calendarId/events"
-        async_http_request = AsyncHttpRequest(url, user)
-        await async_http_request.add_param("calendarId", calendar.calendar_id)
-        await async_http_request.add_param("timeMin", self.event["start"]["dateTime"])
-        await async_http_request.add_param("timeMax", self.event["end"]["dateTime"] )
+        google_calendar_async_http_request = GoogleCalendarAsyncHttpRequest(user)
+        await google_calendar_async_http_request.add_param("calendarId", calendar.calendar_id)
+        await google_calendar_async_http_request.add_param("timeMin", self.event["start"]["dateTime"])
+        await google_calendar_async_http_request.add_param("timeMax", self.event["end"]["dateTime"] )
         
         #await async_http_request.add_header("Content-Type", "")
-        response = await async_http_request.make_request("get")
+        response = await google_calendar_async_http_request.make_request("get", url)
         #print(response)
         if response:
             for item in response['items']:
@@ -85,24 +85,15 @@ class Event(object):
 
     async def decline_meeting(self, calendar, user):
         url = "https://www.googleapis.com/calendar/v3/calendars/" + calendar.calendar_id+ "/events/" + self.event["id"]
-        headers = {'Authorization' : "Bearer " + await token.get_token(user)} 
         attendee = await self.get_self_from_attendees()
         attendee["responseStatus"] = "declined"
         attendee["comment"] = "Declined automatically by Calendar Defense."
 
-        #json = {"attendees" : [attendee]        }
-
-        async_http_request = AsyncHttpRequest(url, user)
-        await async_http_request.add_param("sendUpdates", "all")
-        await async_http_request.add_json("attendees", [attendee])
-        response = await async_http_request.make_request("patch")
+        google_calendar_async_http_request = GoogleCalendarAsyncHttpRequest(user)
+        await google_calendar_async_http_request.add_param("sendUpdates", "all")
+        await google_calendar_async_http_request.add_json("attendees", [attendee])
+        response = await google_calendar_async_http_request.make_request("patch", url)
       
         if response:
             return True
         return False
-        async with aiohttp.ClientSession() as session:
-            async with session.patch(url, headers=headers, params=params, json=json) as resp:
-                if resp.status == 200:
-                    return True
-                else:
-                    return False

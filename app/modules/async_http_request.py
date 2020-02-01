@@ -7,12 +7,10 @@ import os
 
 class AsyncHttpRequest(object):
 
-    def __init__(self, url, user):
-        self.url = url
+    def __init__(self):
         self.headers = dict()
         self.params = dict()
         self.json = dict()
-        self.user = user
 
     async def add_param(self, key, value):
         self.params[key] = value
@@ -23,9 +21,7 @@ class AsyncHttpRequest(object):
     async def add_json(self, key, value):
         self.json[key] = value
 
-    async def make_request(self, method, auth=True):
-        if auth:
-            self.headers['Authorization'] = "Bearer " + await token.get_token(self.user)
+    async def make_request(self, method, url):
         if not self.headers:
             self.headers = None
         if not self.params:
@@ -41,10 +37,11 @@ class AsyncHttpRequest(object):
                     "post" : session.post,
                     "patch" : session.patch
                 }
-                #print(self.params)
-                async with methods[method](self.url, headers=self.headers, params=self.params, json=self.json) as resp:
+                print(self.params)
+                async with methods[method](url, headers=self.headers, params=self.params, json=self.json) as resp:
                     #print(await resp.text())
                     if resp.status == 200:
+                        #print(await resp.json())
                         return await resp.json()
                     else:
                         logging.info(await resp.text())

@@ -1,4 +1,4 @@
-from modules.async_http_request import AsyncHttpRequest
+from modules.google_calendar_async_http_request import GoogleCalendarAsyncHttpRequest
 import asyncio
 import aiohttp
 import google.cloud.logging
@@ -22,16 +22,18 @@ class PushNotification(object):
         i = 0
         try:
             while pages:
-                async_http_request = AsyncHttpRequest(url, self.user)
-                await async_http_request.add_param("orderBy","updated")
-                await async_http_request.add_param("singleEvents","True")
-                await async_http_request.add_param("showDeleted","False")
-                await async_http_request.add_param("updatedMin",self.watched_calendar.last_check)
+                google_calendar_async_http_request = GoogleCalendarAsyncHttpRequest(self.user)
+                await google_calendar_async_http_request.add_param("orderBy","updated")
+                await google_calendar_async_http_request.add_param("singleEvents","True")
+                await google_calendar_async_http_request.add_param("showDeleted","False")
+                await google_calendar_async_http_request.add_param("updatedMin",self.watched_calendar.last_check)
                 try:
-                    await async_http_request.add_param("pageToken",nextPageToken)
+                    await google_calendar_async_http_request.add_param("pageToken",nextPageToken)
                 except:
                     pass
-                response = await async_http_request.make_request("get")
+                response = await google_calendar_async_http_request.make_request("get", url)
+                #print("response below")
+                #print(response)
                 if response:
                     self.updated_events.extend(response["items"])
                     try:
