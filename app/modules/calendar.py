@@ -7,7 +7,7 @@ import modules.token as token
 class Calendar(object):
     
     async def get_calendars():
-        calendar_id = "mdb388@gmail.com"
+        calendar_id = "xxx"
         url = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
         headers = {'Authorization' : "Bearer " + await token.get_token(user)}
         try:
